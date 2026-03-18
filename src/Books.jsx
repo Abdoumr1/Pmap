@@ -10,7 +10,7 @@ const Books = () => {
     const books = [
         {
             id: 1,
-            title: "Policy Thought",
+            title: "تاريخ الافكار السياسية",
             author: "Jhon",
             category: "Policy",
 
@@ -21,28 +21,7 @@ const Books = () => {
             readers: "1.2k",
             pdfUrl: pdfbook1
         },
-        {
-            id: 2,
-            title: "Productivity During Commute",
-            author: "Sarah Mansour",
-            category: "Self-Development",
-            pages: 98,
-            image: logopfe,
-            rating: 4.6,
-            readers: "956",
-            pdfUrl: "/books/productivity.pdf"
-        },
-        {
-            id: 3,
-            title: "Algerian Cultural Heritage",
-            author: "Prof. Karim Bensaid",
-            category: "Culture",
-            pages: 156,
-            image: logopfe,
-            rating: 4.9,
-            readers: "2.1k",
-            pdfUrl: "/books/algerian-heritage.pdf"
-        },
+        
     ];
 
     const openPDFInApp= (bookId) => {

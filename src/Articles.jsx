@@ -26,11 +26,11 @@ const Articles = () => {
   const articles = [
     {
       id: 1,
-      title: "The Future of Micro-Learning in Algeria",
-      excerpt: "How 5-minute learning sessions are transforming education in our country, especially during daily commutes.",
+      title: "Map",
+      excerpt: "A map is a symbolic representation of selected characteristics of a place, usually drawn on a flat surface.",
       content: "Full article here...",
       author: {
-        name: "Dr. Sarah Benali",
+        name: "Dr.",
         avatar: "/avatars/sarah.jpg",
         title: "Education Researcher"
       },
@@ -63,8 +63,8 @@ const Articles = () => {
     },
     {
       id: 3,
-      title: "Ancient Trade Routes: From Algiers to Timbuktu",
-      excerpt: "Exploring historical routes that connected North and West Africa, and their legacy in today's cultural exchanges.",
+      title: "Digital Education in Rural Areas",
+      excerpt: "Bridging the digital divide: How technology is bringing quality education to rural Algeria.",
       author: {
         name: "Dr. Fatima Zohra",
         avatar: "/avatars/fatima.jpg",
@@ -81,8 +81,8 @@ const Articles = () => {
     },
     {
       id: 4,
-      title: "The Rise of Tech Startups in Algiers",
-      excerpt: "How Algeria's new generation of entrepreneurs is shaping the future of technology in the capital.",
+      title: "Digital Education in Rural Areas",
+      excerpt: "Bridging the digital divide: How technology is bringing quality education to rural Algeria.",
       author: {
         name: "Yacine Boudiaf",
         avatar: "/avatars/yacine.jpg",
