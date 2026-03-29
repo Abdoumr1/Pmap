@@ -14,6 +14,9 @@ import ArticleDetail from './DetailArticle';
 import QuizStart from "./QuizStart";
 import WordGame from "./WordGame";
 import PDFViewer from "./pdfv";
+import  Contact  from "./Contact"
+import Login from "./Login"
+import Signup from "./SignUp"
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   'pdfjs-dist/build/pdf.worker.min.mjs',
   import.meta.url,
@@ -54,6 +57,9 @@ function AppContent() {
         <Route path="/article/:articleId" element={<ArticleDetail />} />
         <Route path="/quiz/:quizId" element={<QuizStart />} />
         <Route path="/game/:id" element={<WordGame />} />
+        <Route path="/Contact" element={<Contact />} />
+        <Route path="/Login" element={<Login />} />
+        <Route path="/Signup" element={<Signup />} />
       </Routes>
     </div>
   );

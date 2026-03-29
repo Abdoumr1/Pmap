@@ -1,6 +1,6 @@
 // Articles.jsx - Main articles listing page with navigation to article detail
 import { useState } from "react";
-import { useNavigate } from "react-router-dom"; // IMPORTANT: Add this import
+import { useNavigate, Link } from "react-router-dom"; // IMPORTANT: Add Link import
 import { Calendar, Clock, User, Eye, Bookmark, ChevronLeft, ChevronRight } from 'lucide-react';
 import articleImage1 from "./images/article1.webp";
 import articleImage2 from "./images/logopfe.png";
@@ -155,12 +155,15 @@ const Articles = () => {
   return (
     <div className="min-h-screen bg-gray-50 font-['Inter',_'Poppins',_sans-serif]">
       {/* Top Navigation Bar - Eldjazer style */}
-      <div className="bg-white shadow-sm sticky top-0 z-20">
+      <div className="bg-white shadow-sm sticky top-0 z-20 border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            {/* You can add your navigation items here */}
+
+
+
+
           </div>
-        </div>
+        </div>{/*  */}
       </div>
 
       {/* Main Content */}
@@ -168,8 +171,9 @@ const Articles = () => {
 
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl sm:text-4xl font-bold text-green-800 mb-2 border-l-4 border-green-00 pl-4">
-            <MdArticle  className="text-4xl"/>Articles & Analysis
+          <h1 className="text-3xl sm:text-4xl font-bold text-green-800 mb-2 border-l-4 border-green-700 pl-4 flex items-center gap-2">
+            <MdArticle className="text-4xl" />
+            Articles & Analysis
           </h1>
           <p className="text-gray-600 ml-6">
             Discover our latest publications on education, culture, and innovation in Algeria
@@ -178,19 +182,23 @@ const Articles = () => {
 
         {/* Categories Filter */}
         <div className="flex flex-wrap justify-center gap-3 mb-12">
-          {["All", "Religious", "Policy", "History", "Technology"].map((category) => (
+          {categories.map((category) => (
             <button
               key={category}
-              className="px-5 py-2.5 rounded-full border-2 border-green-700 text-gray-700 hover:bg-green-800 hover:text-white hover:border-green-600 transition-all duration-300 text-sm font-semibold"
+              className={`px-5 py-2.5 rounded-full border-2 transition-all duration-300 text-sm font-semibold ${selectedCategory === category
+                ? "bg-green-700 text-white border-green-700"
+                : "border-green-700 text-gray-700 hover:bg-green-800 hover:text-white hover:border-green-600"
+                }`}
+              onClick={() => setSelectedCategory(category)}
             >
               {category}
             </button>
           ))}
         </div>
 
-       
+
         {featuredArticle && (
-          <div 
+          <div
             className="mb-12 bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
             onClick={() => handleArticleClick(featuredArticle.id)}
           >
@@ -255,8 +263,8 @@ const Articles = () => {
                 </h2>
                 <div className="space-y-4">
                   {trendingArticles.map((article, index) => (
-                    <div 
-                      key={article.id} 
+                    <div
+                      key={article.id}
                       className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow p-4 flex gap-4 cursor-pointer"
                       onClick={() => handleArticleClick(article.id)}
                     >
@@ -296,8 +304,8 @@ const Articles = () => {
               </h2>
               <div className="space-y-6">
                 {regularArticles.map((article) => (
-                  <article 
-                    key={article.id} 
+                  <article
+                    key={article.id}
                     className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow overflow-hidden cursor-pointer"
                     onClick={() => handleArticleClick(article.id)}
                   >
@@ -376,8 +384,8 @@ const Articles = () => {
               </h3>
               <div className="space-y-4">
                 {articles.slice(0, 4).map((article, index) => (
-                  <div 
-                    key={index} 
+                  <div
+                    key={index}
                     className="flex gap-3 cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors"
                     onClick={() => handleArticleClick(article.id)}
                   >
@@ -401,14 +409,16 @@ const Articles = () => {
               </h3>
               <div className="space-y-2">
                 {categories.slice(1).map((category) => (
-                  <a
+                  <button
                     key={category}
-                    href="#"
-                    className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0 hover:text-green-700 transition-colors"
+                    onClick={() => setSelectedCategory(category)}
+                    className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0 hover:text-green-700 transition-colors w-full"
                   >
                     <span>{category}</span>
-                    <span className="text-xs text-gray-400">(1)</span>
-                  </a>
+                    <span className="text-xs text-gray-400">
+                      ({articles.filter(a => a.category === category).length})
+                    </span>
+                  </button>
                 ))}
               </div>
             </div>
@@ -416,12 +426,7 @@ const Articles = () => {
         </div>
       </div>
 
-      {/* Footer - Eldjazer style */}
-      <footer className="bg-gray-700 text-gray-300 mt-16">
-        <div className="border-t border-gray-800 mt-8 pb-7 pt-10 text-sm text-center">
-          © 2026 P-MAP. All rights reserved.
-        </div>
-      </footer>
+
     </div>
   );
 };
