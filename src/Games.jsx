@@ -2,19 +2,20 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  Clock, Trophy, Star, Users, Download,
-  ChevronRight, Filter, Search, Wifi, WifiOff,
-  Brain, Calculator, Puzzle, Languages, Globe
+  Trophy, Star, Users,
+  ChevronRight, Filter, Search,
+  Brain, Calculator, Puzzle, Languages, Globe,
+  WifiOff
 } from 'lucide-react';
-import crosswordimg from "./images/crossword.png"
+
+import crosswordimg from "./images/crossword.png";
+
 const Games = () => {
   const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
 
-  const categories = [
-    "All", "Math", "Word", "Memory", "Strategy", "Quiz"
-  ];
+  const categories = ["All", "Math", "Word", "Memory", "Strategy", "Quiz"];
 
   const getCategoryIcon = (category) => {
     switch (category) {
@@ -27,21 +28,33 @@ const Games = () => {
     }
   };
 
-
   const games = [
     {
       id: 1,
-      title: "Cross word",
-      description: "find word",
+      title: "Cross Word",
+      description: "Find hidden words in the grid",
       category: "Word",
       image: crosswordimg,
       players: 1234,
       rating: 4.8,
-      difficulty: "Adjustable",
+      difficulty: "Beginner",
       offline: true,
       popular: true
     },
 
+    // 👉 ADD FIND DIFFERENCE GAME HERE
+    {
+      id: 2,
+      title: "Find the Difference",
+      description: "Spot differences between two images",
+      category: "Memory",
+      image: crosswordimg,
+      players: 842,
+      rating: 4.7,
+      difficulty: "Beginner",
+      offline: true,
+      popular: true
+    }
   ];
 
   const getDifficultyColor = (difficulty) => {
@@ -56,99 +69,128 @@ const Games = () => {
     game.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const handleGameClick = (game) => {
+    if (game.id === 2) {
+      navigate("/find-difference");
+    } else {
+      navigate(`/game/${game.id}`);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header Section */}
-      <div className="bg-gradient-to-r ">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
-          <div className="text-center mb-10 sm:mb-14">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-green-800 mb-4">
-              🎮 Brain Training Games
-            </h1>
-            <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto">
-              Sharpen your mind with fun, educational games - play anywhere, even offline                    </p>
-          </div>
+      {/* HEADER */}
+      <div className="bg-gradient-to-r">
+        <div className="max-w-7xl mx-auto px-4 py-12 text-center">
+
+          <h1 className="text-4xl font-bold text-green-800 mb-3">
+            🎮 Brain Training Games
+          </h1>
+
+          <p className="text-gray-600">
+            Sharpen your mind with fun educational games
+          </p>
 
         </div>
       </div>
 
-      {/* Categories Filter */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* SEARCH + FILTER */}
+      <div className="max-w-7xl mx-auto px-4 py-6 flex flex-col md:flex-row gap-4">
 
+        {/* SEARCH */}
+        <div className="flex items-center bg-white border rounded-lg px-3 py-2 w-full md:w-1/2">
+          <Search className="w-4 h-4 text-gray-500" />
+          <input
+            type="text"
+            placeholder="Search games..."
+            className="w-full outline-none px-2"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
 
-        {/* Games Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredGames.map((game) => (
-            <div
-              key={game.id}
-              onClick={() => navigate(`/game/${game.id}`)}
-              className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden cursor-pointer border border-gray-100 hover:border-purple-300"
+        {/* CATEGORY FILTER */}
+        <div className="flex gap-2 flex-wrap">
+          {categories.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setSelectedCategory(cat)}
+              className={`px-4 py-2 rounded-full text-sm border transition ${selectedCategory === cat
+                ? "bg-green-700 text-white"
+                : "bg-white hover:bg-gray-100"
+                }`}
             >
-              {/* Game Image */}
-              <div className="relative h-48 overflow-hidden">
-                <img
-                  src={game.image}
-                  alt={game.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-                {/* Popular Badge */}
-                {game.popular && (
-                  <div className="absolute top-3 right-3 bg-orange-500 text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
-                    <Trophy className="w-3 h-3" />
-                    Popular
-                  </div>
-                )}
-                {/* Offline Badge */}
-                {game.offline && (
-                  <div className="absolute top-3 left-3 bg-green-600 text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
-                    <WifiOff className="w-3 h-3" />
-                    Offline
-                  </div>
-                )}
-              </div>
-
-              {/* Game Content */}
-              <div className="p-5">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-medium text-purple-700 bg-purple-50 px-2 py-1 rounded-full flex items-center gap-1">
-                    {getCategoryIcon(game.category)}
-                    {game.category}
-                  </span>
-                  <div className="flex items-center gap-1 text-sm text-yellow-500">
-                    <Star className="w-4 h-4 fill-current" />
-                    <span className="font-medium">{game.rating}</span>
-                  </div>
-                </div>
-
-                <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-purple-700 transition-colors">
-                  {game.title}
-                </h3>
-
-                <p className="text-sm text-gray-600 mb-4 line-clamp-2">
-                  {game.description}
-                </p>
-
-                {/* Game Stats */}
-                <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
-                  <div className="flex items-center gap-1">
-                    <Users className="w-4 h-4" />
-                    <span>{game.players}</span>
-                  </div>
-                  <div className={`px-2 py-0.5 rounded-full text-xs font-medium ${getDifficultyColor(game.difficulty)}`}>
-                    {game.difficulty}
-                  </div>
-                </div>
-
-                {/* Play Button */}
-                <button className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white py-3 px-4 rounded-xl text-sm font-semibold hover:from-purple-700 hover:to-purple-600 transition-all duration-300 transform group-hover:scale-[1.02] shadow-md hover:shadow-lg flex items-center justify-center gap-2">
-                  <span>Play Now</span>
-                <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
+              {cat}
+            </button>
           ))}
         </div>
+      </div>
+
+      {/* GAMES GRID */}
+      <div className="max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+        {filteredGames.map((game) => (
+          <div
+            key={game.id}
+            onClick={() => handleGameClick(game)}
+            className="bg-white rounded-2xl shadow-lg hover:shadow-2xl cursor-pointer transition overflow-hidden"
+          >
+
+            {/* IMAGE */}
+            <div className="relative h-48">
+              <img
+                src={game.image}
+                alt={game.title}
+                className="w-full h-full object-cover"
+              />
+
+              {game.popular && (
+                <div className="absolute top-2 right-2 bg-orange-500 text-white px-2 py-1 text-xs rounded">
+                  <Trophy className="w-3 h-3 inline" /> Popular
+                </div>
+              )}
+
+              {game.offline && (
+                <div className="absolute top-2 left-2 bg-green-600 text-white px-2 py-1 text-xs rounded">
+                  <WifiOff className="w-3 h-3 inline" /> Offline
+                </div>
+              )}
+            </div>
+
+            {/* CONTENT */}
+            <div className="p-5">
+
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded flex items-center gap-1">
+                  {getCategoryIcon(game.category)}
+                  {game.category}
+                </span>
+
+                <span className="text-yellow-500 text-sm flex items-center gap-1">
+                  <Star className="w-4 h-4" />
+                  {game.rating}
+                </span>
+              </div>
+
+              <h3 className="font-bold text-lg">{game.title}</h3>
+              <p className="text-gray-500 text-sm mb-3">{game.description}</p>
+
+              <div className="flex justify-between text-sm text-gray-500 mb-4">
+                <span>👥 {game.players}</span>
+
+                <span className={`px-2 py-1 rounded ${getDifficultyColor(game.difficulty)}`}>
+                  {game.difficulty}
+                </span>
+              </div>
+
+              <button className="w-full bg-green-700 text-white py-2 rounded-lg flex justify-center items-center gap-2 hover:bg-green-800">
+                Play Now <ChevronRight className="w-4 h-4" />
+              </button>
+
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );

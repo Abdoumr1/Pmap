@@ -1,18 +1,23 @@
 // Articles.jsx - Main articles listing page with navigation to article detail
-import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom"; // IMPORTANT: Add Link import
-import { Calendar, Clock, User, Eye, Bookmark, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation, Link } from "react-router-dom";
+import { Calendar, Clock, User, Eye, Bookmark, ChevronLeft, ChevronRight, ArrowLeft } from 'lucide-react';
 import articleImage1 from "./images/article1.webp";
 import articleImage2 from "./images/logopfe.png";
 import articleImage3 from "./images/logopfe.png";
 import { MdArticle } from "react-icons/md";
-
+import axios from "axios";
 
 const Articles = () => {
-  const navigate = useNavigate(); // IMPORTANT: Add this hook
+  const navigate = useNavigate();
+  const location = useLocation();
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
   const [bookmarkedArticles, setBookmarkedArticles] = useState([]);
+  const [articles, setArticles] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [ageCategory, setAgeCategory] = useState(null);
+  const [showWarning, setShowWarning] = useState(false);
 
   const categories = [
     "All",
@@ -23,121 +28,116 @@ const Articles = () => {
     "Society"
   ];
 
-  const articles = [
-    {
-      id: 1,
-      title: "Map",
-      excerpt: "A map is a symbolic representation of selected characteristics of a place, usually drawn on a flat surface.",
-      content: "Full article here...",
-      author: {
-        name: "Dr.",
-        avatar: "/avatars/sarah.jpg",
-        title: "Education Researcher"
-      },
-      category: "Education",
-      image: articleImage1,
-      readTime: "5 min",
-      publishDate: "March 14, 2026",
-      views: 1240,
-      comments: 23,
-      featured: true,
-      trending: true
-    },
-    {
-      id: 2,
-      title: "Preserving Algerian Cultural Heritage in the Digital Age",
-      excerpt: "How technology is helping preserve and share Algeria's rich cultural heritage with new generations.",
-      author: {
-        name: "Karim Mansour",
-        avatar: "/avatars/karim.jpg",
-        title: "Historian"
-      },
-      category: "Culture",
-      image: articleImage2,
-      readTime: "8 min",
-      publishDate: "March 12, 2026",
-      views: 890,
-      comments: 15,
-      featured: false,
-      trending: true
-    },
-    {
-      id: 3,
-      title: "Digital Education in Rural Areas",
-      excerpt: "Bridging the digital divide: How technology is bringing quality education to rural Algeria.",
-      author: {
-        name: "Dr. Fatima Zohra",
-        avatar: "/avatars/fatima.jpg",
-        title: "Historian"
-      },
-      category: "History",
-      image: articleImage3,
-      readTime: "10 min",
-      publishDate: "March 10, 2026",
-      views: 670,
-      comments: 8,
-      featured: false,
-      trending: false
-    },
-    {
-      id: 4,
-      title: "Digital Education in Rural Areas",
-      excerpt: "Bridging the digital divide: How technology is bringing quality education to rural Algeria.",
-      author: {
-        name: "Yacine Boudiaf",
-        avatar: "/avatars/yacine.jpg",
-        title: "Tech Journalist"
-      },
-      category: "Technology",
-      image: articleImage1,
-      readTime: "6 min",
-      publishDate: "March 8, 2026",
-      views: 2100,
-      comments: 42,
-      featured: false,
-      trending: true
-    },
-    {
-      id: 5,
-      title: "Digital Education in Rural Areas",
-      excerpt: "Challenges and opportunities of digital learning in remote regions of Algeria.",
-      author: {
-        name: "Nadia Cherif",
-        avatar: "/avatars/nadia.jpg",
-        title: "Education Expert"
-      },
-      category: "Education",
-      image: articleImage2,
-      readTime: "7 min",
-      publishDate: "March 6, 2026",
-      views: 540,
-      comments: 12,
-      featured: false,
-      trending: false
-    },
-    {
-      id: 6,
-      title: "The New Algerian Art Scene",
-      excerpt: "Discover contemporary artists redefining Algerian culture on the international stage.",
-      author: {
-        name: "Amira Said",
-        avatar: "/avatars/amira.jpg",
-        title: "Art Critic"
-      },
-      category: "Culture",
-      image: articleImage3,
-      readTime: "9 min",
-      publishDate: "March 4, 2026",
-      views: 780,
-      comments: 19,
-      featured: false,
-      trending: false
-    }
-  ];
+  // Age category check effect
+  useEffect(() => {
+    let selectedAge = null;
 
-  const featuredArticle = articles.find(article => article.featured);
-  const trendingArticles = articles.filter(article => article.trending);
-  const regularArticles = articles.filter(article => !article.featured);
+    if (location.state?.ageCategory) {
+      selectedAge = location.state.ageCategory;
+      setAgeCategory(selectedAge);
+      localStorage.setItem('userAgeCategory', selectedAge);
+    } else {
+      const savedAgeCategory = localStorage.getItem('userAgeCategory');
+      if (savedAgeCategory) setAgeCategory(savedAgeCategory);
+    }
+
+    if (!selectedAge && !localStorage.getItem('userAgeCategory')) {
+      setShowWarning(true);
+      setTimeout(() => {
+        navigate('/age-selection', { state: { returnTo: '/card' } });
+      }, 2000);
+    }
+  }, [location, navigate]);
+
+  const matchAge = (articleAge, userAge) => {
+    if (!articleAge || !userAge) return false;
+
+    // Handle case where articleAge might be an array or string
+    if (Array.isArray(articleAge)) {
+      return articleAge.some(age =>
+        age.toLowerCase().includes(userAge.toLowerCase())
+      );
+    }
+
+    return articleAge.toLowerCase().includes(userAge.toLowerCase())
+      || articleAge.toLowerCase().includes("all");
+  };
+
+  // Fetch articles effect
+  useEffect(() => {
+    axios
+      .get("http://127.0.0.1:8000/api/articles/")
+      .then((res) => {
+        const formatted = res.data.map((article, index) => ({
+          id: article.id,
+          title: article.title,
+          excerpt: article.excerpt,
+          content: article.content,
+          category: article.category,
+          age_groupe: article.age_groups,
+          image: article.image,
+          readTime: article.read_time || "5 min",
+          publishDate: new Date(article.publish_date).toLocaleDateString(),
+          trending: article.trending || false,
+          author: {
+            name: article.name_author || "Unknown",
+            avatar: "/avatars/default.jpg",
+            title: article.job_author || "Writer"
+          }
+        }));
+
+        setArticles(formatted);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error(err);
+        setLoading(false);
+      });
+  }, []);
+
+  // Get latest article (most recent by publish date or id)
+  const latestArticle = [...articles]
+    .sort((a, b) => new Date(b.publishDate) - new Date(a.publishDate))
+    .find(article => matchAge(article.age_groupe, ageCategory));
+
+  // Filter articles by selected category and age (excluding the latest article if showing "All" category)
+  const filteredArticles = articles.filter(article => {
+    const categoryOk =
+      selectedCategory === "All" ||
+      article.category === selectedCategory;
+
+    const ageOk = matchAge(article.age_groupe, ageCategory);
+
+    // If showing "All" category, exclude the latest article from the main list
+    // since it's already featured at the top
+    if (selectedCategory === "All" && latestArticle && article.id === latestArticle.id) {
+      return false;
+    }
+
+    return categoryOk && ageOk;
+  });
+
+  // Get category count for sidebar - FILTERS BY AGE
+  const getCategoryCount = (category) => {
+    // First filter by age category
+    const ageFilteredArticles = articles.filter(article =>
+      matchAge(article.age_groupe, ageCategory)
+    );
+
+    if (category === "All") return ageFilteredArticles.length;
+    return ageFilteredArticles.filter(article => article.category === category).length;
+  };
+
+  // Get trending articles (for sidebar) - filtered by category and age
+  const trendingArticles = articles.filter(article =>
+    article.trending &&
+    (selectedCategory === "All" || article.category === selectedCategory) &&
+    matchAge(article.age_groupe, ageCategory) &&
+    (!latestArticle || article.id !== latestArticle.id)
+  ).slice(0, 4);
+
+  // Get most read articles (for sidebar) - filtered by category and age
+  const mostReadArticles = [...filteredArticles].slice(0, 4);
 
   const toggleBookmark = (articleId) => {
     if (bookmarkedArticles.includes(articleId)) {
@@ -147,10 +147,20 @@ const Articles = () => {
     }
   };
 
-  // Function to handle article click
   const handleArticleClick = (articleId) => {
     navigate(`/article/${articleId}`);
   };
+
+  // Pagination logic
+  const articlesPerPage = 6;
+  const indexOfLastArticle = currentPage * articlesPerPage;
+  const indexOfFirstArticle = indexOfLastArticle - articlesPerPage;
+  const currentArticles = filteredArticles.slice(indexOfFirstArticle, indexOfLastArticle);
+  const totalPages = Math.ceil(filteredArticles.length / articlesPerPage);
+
+  if (loading) {
+    return <div className="text-center p-10">Loading...</div>;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 font-['Inter',_'Poppins',_sans-serif]">
@@ -158,12 +168,17 @@ const Articles = () => {
       <div className="bg-white shadow-sm sticky top-0 z-20 border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-
-
-
-
           </div>
-        </div>{/*  */}
+        </div>
+      </div>
+
+      <div className="flex gap-3 p-6 pl-3 pb-0">
+        <button
+          onClick={() => navigate(-1)}
+          className="p-2 bg-green-700 hover:bg-gray-800 rounded-full transition-colors duration-200"
+        >
+          <ArrowLeft className="w-7 h-7 text-white" />
+        </button>
       </div>
 
       {/* Main Content */}
@@ -180,64 +195,113 @@ const Articles = () => {
           </p>
         </div>
 
-        {/* Categories Filter */}
+        {/* Categories Filter - Now shows counts based on age */}
         <div className="flex flex-wrap justify-center gap-3 mb-12">
-          {categories.map((category) => (
-            <button
-              key={category}
-              className={`px-5 py-2.5 rounded-full border-2 transition-all duration-300 text-sm font-semibold ${selectedCategory === category
-                ? "bg-green-700 text-white border-green-700"
-                : "border-green-700 text-gray-700 hover:bg-green-800 hover:text-white hover:border-green-600"
-                }`}
-              onClick={() => setSelectedCategory(category)}
-            >
-              {category}
-            </button>
-          ))}
+          {categories.map((category) => {
+            // Get count for this category filtered by age
+            let count;
+            if (category === "All") {
+              count = articles.filter(a => matchAge(a.age_groupe, ageCategory)).length;
+            } else {
+              count = articles.filter(a =>
+                a.category === category && matchAge(a.age_groupe, ageCategory)
+              ).length;
+            }
+
+            // Don't show category if no articles for this age group (optional)
+            if (count === 0 && category !== "All") return null;
+
+            return (
+              <button
+                key={category}
+                className={`px-5 py-2.5 rounded-full border-2 transition-all duration-300 text-sm font-semibold ${selectedCategory === category
+                  ? "bg-green-700 text-white border-green-700"
+                  : "border-green-700 text-gray-700 hover:bg-green-800 hover:text-white hover:border-green-600"
+                  }`}
+                onClick={() => {
+                  setSelectedCategory(category);
+                  setCurrentPage(1);
+                }}
+              >
+                {category}
+                {category !== "All" && (
+                  <span className="ml-2 text-xs">
+                    ({count})
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </div>
 
+        {ageCategory && (
+          <div className="flex justify-center mb-6">
+            <span className="bg-green-100 text-green-700 px-5 py-2 rounded-full text-lg font-semibold">
+              Articles for {ageCategory}
+            </span>
+          </div>
+        )}
 
-        {featuredArticle && (
+        {/* Show message when no articles in selected category */}
+        {filteredArticles.length === 0 && !latestArticle && (
+          <div className="text-center py-12 bg-white rounded-lg shadow-sm mb-8">
+            <p className="text-gray-500 text-lg">No articles found in "{selectedCategory}" category for {ageCategory}.</p>
+            <button
+              onClick={() => setSelectedCategory("All")}
+              className="mt-4 px-6 py-2 bg-green-700 text-white rounded-lg hover:bg-green-800 transition-colors"
+            >
+              View All Articles
+            </button>
+          </div>
+        )}
+
+        {/* Latest Article Section - Replaces Featured Article */}
+        {latestArticle && selectedCategory === "All" && (
           <div
             className="mb-12 bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
-            onClick={() => handleArticleClick(featuredArticle.id)}
+            onClick={() => handleArticleClick(latestArticle.id)}
           >
             <div className="grid md:grid-cols-2">
               <div className="relative h-64 md:h-96 overflow-hidden">
                 <img
-                  src={featuredArticle.image}
-                  alt={featuredArticle.title}
-                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                  src={`http://127.0.0.1:8000${latestArticle.image}`}
+                  alt={latestArticle.title}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.target.src = articleImage1;
+                  }}
                 />
                 <div className="absolute top-4 left-4 bg-green-700 text-white px-3 py-1 text-sm font-medium">
-                  Featured
+                  Latest Article
                 </div>
               </div>
               <div className="p-8 flex flex-col justify-center">
-                <div className="flex items-center gap-3 text-sm text-gray-500 mb-3">
-                  <span className="text-green-700 font-medium">{featuredArticle.category}</span>
+                <div className="flex items-center gap-3 text-xl text-gray-500 mb-3">
+                  <span className="bg-green-800 rounded text-white px-3 py-1 text-center">
+                    {latestArticle.category}
+                  </span>
                   <span>•</span>
                   <span className="flex items-center gap-1">
                     <Calendar className="w-3 h-3" />
-                    {featuredArticle.publishDate}
+                    {latestArticle.publishDate}
                   </span>
                 </div>
                 <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4 leading-tight hover:text-green-700 transition-colors">
-                  {featuredArticle.title}
+                  {latestArticle.title}
                 </h2>
                 <p className="text-gray-600 mb-6 leading-relaxed">
-                  {featuredArticle.excerpt}
+                  {latestArticle.excerpt}
                 </p>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <img
-                      src={featuredArticle.author.avatar}
-                      alt={featuredArticle.author.name}
-                      className="w-10 h-10 rounded-full object-cover border-2 border-green-100"
-                    />
+                    <div className="w-9 h-9 rounded-full bg-green-100 flex items-center justify-center">
+                      <span className="text-green-900 text-ms">
+                        {latestArticle.author.name?.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
                     <div>
-                      <p className="font-medium text-gray-900">{featuredArticle.author.name}</p>
-                      <p className="text-xs text-gray-500">{featuredArticle.author.title}</p>
+                      <p className="font-medium text-gray-900">{latestArticle.author.name}</p>
+                      <p className="text-xs text-gray-500">{latestArticle.author.title}</p>
                     </div>
                   </div>
                   <button className="px-5 py-2 bg-green-700 text-white text-sm font-medium hover:bg-green-800 transition-colors rounded">
@@ -253,57 +317,14 @@ const Articles = () => {
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Main Articles Column */}
           <div className="lg:col-span-2">
-
-            {/* Trending Section */}
-            {trendingArticles.length > 0 && (
-              <div className="mb-10">
-                <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  <span className="w-1 h-6 bg-green-600"></span>
-                  Popular Articles
-                </h2>
-                <div className="space-y-4">
-                  {trendingArticles.map((article, index) => (
-                    <div
-                      key={article.id}
-                      className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow p-4 flex gap-4 cursor-pointer"
-                      onClick={() => handleArticleClick(article.id)}
-                    >
-                      <div className="w-16 h-16 flex-shrink-0 bg-green-100 rounded flex items-center justify-center text-green-700 font-bold text-xl">
-                        #{index + 1}
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-gray-900 mb-1 hover:text-green-700 transition-colors">
-                          {article.title}
-                        </h3>
-                        <div className="flex items-center gap-3 text-xs text-gray-500">
-                          <span className="flex items-center gap-1">
-                            <User className="w-3 h-3" />
-                            {article.author.name}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Eye className="w-3 h-3" />
-                            {article.views}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            {article.readTime}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
             {/* Latest Articles */}
             <div>
-              <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <h2 className="text-3xl font-bold text-gray-900 mb-4 flex items-center gap-2">
                 <span className="w-1 h-6 bg-green-600"></span>
-                Latest Articles
+                {selectedCategory === "All" ? "More Articles" : `${selectedCategory} Articles`}
               </h2>
               <div className="space-y-6">
-                {regularArticles.map((article) => (
+                {currentArticles.map((article) => (
                   <article
                     key={article.id}
                     className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow overflow-hidden cursor-pointer"
@@ -312,16 +333,26 @@ const Articles = () => {
                     <div className="flex flex-col sm:flex-row">
                       <div className="sm:w-48 h-48 sm:h-auto overflow-hidden">
                         <img
-                          src={article.image}
+                          src={`http://127.0.0.1:8000${article.image}`}
                           alt={article.title}
-                          className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.target.src = articleImage1;
+                          }}
                         />
                       </div>
                       <div className="flex-1 p-5">
-                        <div className="flex items-center gap-2 text-xs text-gray-500 mb-2">
-                          <span className="text-green-700 font-medium">{article.category}</span>
+                        <div className="flex items-center gap-2 text-l mb-2">
+                          <span className="bg-green-800 text-white text-center rounded px-3 py-1">
+                            {article.category}
+                          </span>
                           <span>•</span>
                           <span>{article.publishDate}</span>
+                          <span>•</span>
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-4 h-4" />
+                            {article.readTime} min
+                          </span>
                         </div>
                         <h3 className="font-bold text-lg text-gray-900 mb-2 hover:text-green-700 transition-colors">
                           {article.title}
@@ -331,20 +362,21 @@ const Articles = () => {
                         </p>
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            <img
-                              src={article.author.avatar}
-                              alt={article.author.name}
-                              className="w-6 h-6 rounded-full object-cover"
-                            />
-                            <span className="text-xs text-gray-700">{article.author.name}</span>
+                            <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
+                              <span className="text-green-900 text-sm font-semibold">
+                                {article.author.name?.charAt(0).toUpperCase()}
+                              </span>
+                            </div>
+                            <span className="text-sm font-medium text-gray-700">{article.author.name}</span>
                           </div>
                           <div className="flex items-center gap-3">
                             <button
                               onClick={(e) => {
-                                e.stopPropagation(); // Prevent triggering the article click
+                                e.stopPropagation();
                                 toggleBookmark(article.id);
                               }}
-                              className={`hover:text-green-700 ${bookmarkedArticles.includes(article.id) ? 'text-green-700' : 'text-gray-400'}`}
+                              className={`hover:text-green-700 transition-colors ${bookmarkedArticles.includes(article.id) ? 'text-green-700' : 'text-gray-400'
+                                }`}
                             >
                               <Bookmark className="w-4 h-4" fill={bookmarkedArticles.includes(article.id) ? "currentColor" : "none"} />
                             </button>
@@ -357,76 +389,154 @@ const Articles = () => {
               </div>
             </div>
 
-            {/* Pagination - Eldjazer style */}
-            <div className="mt-10 flex items-center justify-center gap-2">
-              <button className="w-10 h-10 flex items-center justify-center border border-gray-200 rounded hover:bg-green-50 hover:border-green-300 transition-colors">
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              <button className="w-10 h-10 flex items-center justify-center bg-green-700 text-white rounded">1</button>
-              <button className="w-10 h-10 flex items-center justify-center border border-gray-200 rounded hover:bg-green-50">2</button>
-              <button className="w-10 h-10 flex items-center justify-center border border-gray-200 rounded hover:bg-green-50">3</button>
-              <span className="px-2">...</span>
-              <button className="w-10 h-10 flex items-center justify-center border border-gray-200 rounded hover:bg-green-50">12</button>
-              <button className="w-10 h-10 flex items-center justify-center border border-gray-200 rounded hover:bg-green-50 hover:border-green-300 transition-colors">
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
+            {/* Pagination - only show if more than articlesPerPage */}
+            {totalPages > 1 && (
+              <div className="mt-10 flex items-center justify-center gap-2">
+                <button
+                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                  disabled={currentPage === 1}
+                  className={`w-10 h-10 flex items-center justify-center border border-gray-200 rounded transition-colors ${currentPage === 1
+                    ? 'opacity-50 cursor-not-allowed'
+                    : 'hover:bg-green-50 hover:border-green-300'
+                    }`}
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                {[...Array(Math.min(3, totalPages))].map((_, i) => {
+                  const page = i + 1;
+                  return (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`w-10 h-10 flex items-center justify-center rounded transition-colors ${currentPage === page
+                        ? 'bg-green-700 text-white'
+                        : 'border border-gray-200 hover:bg-green-50'
+                        }`}
+                    >
+                      {page}
+                    </button>
+                  );
+                })}
+                {totalPages > 3 && (
+                  <>
+                    <span className="px-2">...</span>
+                    <button
+                      onClick={() => setCurrentPage(totalPages)}
+                      className="w-10 h-10 flex items-center justify-center border border-gray-200 rounded hover:bg-green-50 transition-colors"
+                    >
+                      {totalPages}
+                    </button>
+                  </>
+                )}
+                <button
+                  onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                  disabled={currentPage === totalPages}
+                  className={`w-10 h-10 flex items-center justify-center border border-gray-200 rounded transition-colors ${currentPage === totalPages
+                    ? 'opacity-50 cursor-not-allowed'
+                    : 'hover:bg-green-50 hover:border-green-300'
+                    }`}
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Sidebar - Eldjazer style */}
           <div className="lg:col-span-1">
-
-            {/* Most Read */}
+            {/* Most Read - Now filtered by category */}
             <div className="bg-white rounded-lg shadow-sm p-5 mb-6">
-              <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
-                <span className="w-1 h-5 bg-green-600"></span>
+              <h3 className="font-bold text-gray-900 mb-4 text-2xl flex items-center gap-2">
+                <span className="w-1 h-6 bg-green-600"></span>
                 Most Read
               </h3>
-              <div className="space-y-4">
-                {articles.slice(0, 4).map((article, index) => (
-                  <div
-                    key={index}
-                    className="flex gap-3 cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors"
-                    onClick={() => handleArticleClick(article.id)}
-                  >
-                    <span className="text-2xl font-light text-green-700 w-6">{index + 1}</span>
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-900 mb-1 hover:text-green-700 transition-colors">
-                        {article.title}
-                      </h4>
-                      <span className="text-xs text-gray-500">{article.views} views</span>
+              {mostReadArticles.length > 0 ? (
+                <div className="space-y-4">
+                  {mostReadArticles.map((article, index) => (
+                    <div
+                      key={article.id}
+                      className="flex gap-3 cursor-pointer hover:bg-gray-50 p-2 rounded transition-colors group"
+                      onClick={() => handleArticleClick(article.id)}
+                    >
+                      <span className="text-2xl font-bold text-green-700 w-6 group-hover:text-green-800">
+                        {index + 1}
+                      </span>
+                      <div className="flex-1">
+                        <h4 className="text-sm font-medium text-gray-900 group-hover:text-green-700 transition-colors line-clamp-2">
+                          {article.title}
+                        </h4>
+                        <p className="text-xs text-gray-500 mt-1">{article.publishDate}</p>
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500 text-center py-4">No articles found</p>
+              )}
             </div>
 
-            {/* Categories */}
+            {/* Categories - Now shows counts based on age category */}
             <div className="bg-white rounded-lg shadow-sm p-5">
               <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
                 <span className="w-1 h-5 bg-green-600"></span>
                 Categories
               </h3>
               <div className="space-y-2">
-                {categories.slice(1).map((category) => (
-                  <button
-                    key={category}
-                    onClick={() => setSelectedCategory(category)}
-                    className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0 hover:text-green-700 transition-colors w-full"
-                  >
-                    <span>{category}</span>
-                    <span className="text-xs text-gray-400">
-                      ({articles.filter(a => a.category === category).length})
-                    </span>
-                  </button>
-                ))}
+                <button
+                  onClick={() => {
+                    setSelectedCategory("All");
+                    setCurrentPage(1);
+                  }}
+                  className={`flex items-center justify-between py-2 px-3 rounded-lg transition-colors w-full ${selectedCategory === "All"
+                    ? 'bg-green-50 text-green-700 font-semibold'
+                    : 'hover:bg-gray-50'
+                    }`}
+                >
+                  <span>All Articles</span>
+                  <span className={`text-xs px-2 py-1 rounded-full ${selectedCategory === "All"
+                    ? 'bg-green-200 text-green-800'
+                    : 'bg-gray-100 text-gray-600'
+                    }`}>
+                    ({articles.filter(a => matchAge(a.age_groupe, ageCategory)).length})
+                  </span>
+                </button>
+
+                {categories.slice(1).map((category) => {
+                  // Count only articles matching both category AND age
+                  const count = articles.filter(a =>
+                    a.category === category && matchAge(a.age_groupe, ageCategory)
+                  ).length;
+
+                  // Don't show category if count is 0 for this age group
+                  if (count === 0) return null;
+
+                  return (
+                    <button
+                      key={category}
+                      onClick={() => {
+                        setSelectedCategory(category);
+                        setCurrentPage(1);
+                      }}
+                      className={`flex items-center justify-between py-2 px-3 rounded-lg transition-colors w-full ${selectedCategory === category
+                        ? 'bg-green-50 text-green-700 font-semibold'
+                        : 'hover:bg-gray-50'
+                        }`}
+                    >
+                      <span>{category}</span>
+                      <span className={`text-xs px-2 py-1 rounded-full ${selectedCategory === category
+                        ? 'bg-green-200 text-green-800'
+                        : 'bg-gray-100 text-gray-600'
+                        }`}>
+                        ({count})
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>
         </div>
       </div>
-
-
     </div>
   );
 };

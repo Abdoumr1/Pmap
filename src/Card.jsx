@@ -1,134 +1,198 @@
-import React from 'react';
-import { Link } from "react-router-dom";
-import { BookOpenCheck, Newspaper, HelpCircle, Gamepad2 } from 'lucide-react';
-import Home from "./HOme";
+import React, { useEffect, useState } from 'react';
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { BookOpenCheck, Newspaper, HelpCircle, Gamepad2, AlertCircle } from 'lucide-react';
+import { motion } from "framer-motion";
+import { IoMdArrowRoundBack } from "react-icons/io";
 
 const Card = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const [ageCategory, setAgeCategory] = useState(null);
+  const [showWarning, setShowWarning] = useState(false);
+
+  useEffect(() => {
+    let selectedAge = null;
+
+    if (location.state?.ageCategory) {
+      selectedAge = location.state.ageCategory;
+      setAgeCategory(selectedAge);
+      localStorage.setItem('userAgeCategory', selectedAge);
+    } else {
+      const savedAgeCategory = localStorage.getItem('userAgeCategory');
+      if (savedAgeCategory) setAgeCategory(savedAgeCategory);
+    }
+
+    if (!selectedAge && !localStorage.getItem('userAgeCategory')) {
+      setShowWarning(true);
+      setTimeout(() => {
+        navigate('/age-selection', { state: { returnTo: '/card' } });
+      }, 2000);
+    }
+  }, [location, navigate]);
+
   const features = [
     {
       id: 1,
       name: "Books",
-      logo: <BookOpenCheck className="w-6 h-6 text-green-600" />,
-      description: "Short books and summaries for quick learning",
+      logo: <BookOpenCheck className="w-8 h-8 text-white" />,
       path: "/books",
-      bgColor: "bg-green-800 hover:bg-green-900",
-      iconBg: "bg-green-100",
-      shadowColor: "shadow-green-500/20"
+      color: "from-green-600 to-green-700"
     },
     {
       id: 2,
       name: "Articles",
-      logo: <Newspaper className="w-6 h-6 text-blue-600" />,
-      description: "Educational articles with deep insights",
+      logo: <Newspaper className="w-8 h-8 text-white" />,
       path: "/articles",
-      bgColor: "bg-blue-600 hover:bg-blue-800",
-      iconBg: "bg-blue-100",
-      shadowColor: "shadow-blue-500/20"
+      color: "from-blue-500 to-blue-700"
     },
     {
       id: 3,
       name: "Quiz",
-      logo: <HelpCircle className="w-6 h-6 text-red-600" />,
-      description: "Interactive quizzes to test your knowledge",
+      logo: <HelpCircle className="w-8 h-8 text-white" />,
       path: "/quiz",
-      bgColor: "bg-red-500 hover:bg-red-700",
-      iconBg: "bg-red-100",
-      shadowColor: "shadow-red-500/20"
+      color: "from-red-500 to-red-700"
     },
     {
       id: 4,
       name: "Games",
-      logo: <Gamepad2 className="w-6 h-6 text-gray-600" />,
-      description: "Fun learning games while you commute",
+      logo: <Gamepad2 className="w-8 h-8 text-white" />,
       path: "/games",
-      bgColor: "bg-black hover:bg-gray-900",
-      iconBg: "bg-gray-100",
-      shadowColor: "shadow-gray-500/20"
+      color: "from-gray-700 to-black"
     }
   ];
 
+  const getPersonalizedDescription = (featureName, ageCategory) => {
+    const descriptions = {
+      Kids: {
+        Books: "Fun and simple stories ",
+        Articles: "Colorful easy learning ",
+        Quiz: "Play and learn ",
+        Games: "Fun educational games"
+      },
+      Teens: {
+        Books: "Interesting novels",
+        Articles: "Explore new ideas",
+        Quiz: "Challenge yourself",
+        Games: "Smart games"
+      },
+      Adults: {
+        Books: "Deep knowledge",
+        Articles: "Professional insights",
+        Quiz: "Advanced challenges",
+        Games: "Brain training"
+      }
+    };
+
+    return descriptions[ageCategory]?.[featureName] || featureName;
+  };
+
+  if (!ageCategory && showWarning) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <motion.div
+          initial={{ scale: 0.8 }}
+          animate={{ scale: 1 }}
+          className="bg-gray-100 p-6 rounded-xl shadow flex items-center gap-3"
+        >
+          <AlertCircle className="text-yellow-500" />
+          <p>Redirecting...</p>
+        </motion.div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-gray-50 to-gray-100">
-      {/* Feature Cards with Name, Logo, and Description */}
+    <div className="min-h-screen bg-white flex items-center justify-center px-4">
+
+      {/* Center Container */}
       <div className="w-full max-w-2xl">
-        <Home/>
-        
-        <div className="mb-6 space-y-4">
-          {features.map((feature) => (
-            <Link
+
+        {/* Title */}
+        <motion.h1
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-4xl font-bold text-center text-green-800 mb-4"
+        >
+          Choose your activity
+        </motion.h1>
+
+        {/* Age */}
+
+        <div className="flex justify-center mb-6">
+          <span className="bg-green-100 text-green-700 px-5 py-2 rounded-full text-lg font-semibold">
+            {ageCategory}
+          </span>
+        </div>
+
+
+        {/* Cards */}
+        <div className="flex flex-col gap-4">
+          {features.map((feature, index) => (
+            <motion.div
               key={feature.id}
-              to={feature.path}
-              className="block w-full"
+              initial={{ opacity: 0, y: 25 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
             >
-              <div className={`
-                ${feature.bgColor} 
-                text-white 
-                rounded-xl 
-                p-4 
-                transition-all 
-                duration-300 
-                transform 
-                hover:scale-102 
-                hover:-translate-y-1
-                shadow-lg
-                hover:shadow-2xl
-                ${feature.shadowColor}
-                hover:shadow-xl
-                relative
-                overflow-hidden
-                group
-              `}>
-                {/* Inner shadow overlay for depth */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl"></div>
-                
-                <div className="flex items-center space-x-4 relative z-10">
-                  {/* Logo Circle with enhanced shadow */}
-                  <div className={`
-                    ${feature.iconBg} 
-                    w-12 
-                    h-12 
-                    rounded-full 
-                    flex 
-                    items-center 
-                    justify-center 
-                    shadow-inner
-                    border-2
-                    border-white/30
-                    group-hover:shadow-xl
-                    group-hover:scale-110
-                    transition-all
-                    duration-300
-                  `}>
-                    {feature.logo}
-                  </div>
+              <Link to={feature.path} state={{ ageCategory }}>
+                <motion.div
+                  whileHover={{ scale: 1.04 }}
+                  whileTap={{ scale: 0.97 }}
+                  className={`
+                    bg-gradient-to-r ${feature.color}
+                    text-white
+                    rounded-2xl
+                    p-5
+                    shadow-md
+                    hover:shadow-xl
+                    transition
+                  `}
+                >
+                  <div className="flex items-center gap-4">
 
-                  {/* Name and Description */}
-                  <div className="flex-1">
-                    <h3 className="text-lg font-bold drop-shadow-md">{feature.name}</h3>
-                    <p className="text-sm text-white/80 drop-shadow">{feature.description}</p>
-                  </div>
+                    <div className="bg-white/20 p-3 rounded-xl">
+                      {feature.logo}
+                    </div>
 
-                  {/* Arrow Icon with shadow */}
-                  <div className="transform group-hover:translate-x-1 transition-transform duration-300">
-                    <svg
-                      className="w-5 h-5 text-white/80 drop-shadow-lg"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2.5}
-                        d="M9 5l7 7-7 7"
-                      />
-                    </svg>
+                    <div>
+                      <h3 className="text-xl font-bold">
+                        {feature.name}
+                      </h3>
+                      <p className="text-sm text-white/80">
+                        {getPersonalizedDescription(feature.name, ageCategory)}
+                      </p>
+                    </div>
+
                   </div>
-                </div>
-              </div>
-            </Link>
+                </motion.div>
+              </Link>
+            </motion.div>
           ))}
         </div>
+
+        {/* Button */}
+        <div className="flex justify-center mt-8">
+          <button
+            onClick={() => navigate("/AgeSelection")}
+            className="
+              w-full max-w-sm
+              py-3
+              rounded-xl
+              font-bold
+              flex items-center justify-center gap-2
+              bg-gradient-to-r from-green-700 to-green-800
+              text-white
+              hover:shadow-xl
+              hover:scale-105
+              transition
+            "
+          >
+            <IoMdArrowRoundBack />
+            Change Age Group
+          </button>
+        </div>
+
       </div>
     </div>
   );
