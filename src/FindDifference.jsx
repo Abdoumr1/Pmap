@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import img from "./images/logopfe.png";
+import img from "./images/Logoth.png";
 
 const differences = [
     { id: 1, x: 120, y: 80, radius: 25 },
@@ -64,7 +64,6 @@ const FindDifference = () => {
                     alt="original"
                     className="w-80 h-80 object-cover rounded-lg shadow"
                 />
-
                 {/* GAME IMAGE */}
                 <div
                     className="relative w-80 h-80"

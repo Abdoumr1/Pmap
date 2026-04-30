@@ -20,6 +20,9 @@ import Signup from "./SignUp";
 import Footer from "./Footer";
 import FindDifference from "./FindDifference";
 import AgeSelection from "./AgeSelection";
+import MemoryGames from "./MemoryGames";
+import PuzzleGame from "./Puzzles";
+
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   'pdfjs-dist/build/pdf.worker.min.mjs',
@@ -52,17 +55,19 @@ function AppContent() {
         <Route path="/card" element={<Card />} />
         <Route path="/books" element={<Books />} />
         <Route path="/articles" element={<Articles />} />
-        <Route path="/quiz" element={<Quiz />} />
+        <Route path="/quizzes" element={<Quiz />} />
         <Route path="/games" element={<Games />} />
         <Route path="/read/:bookId" element={<PDF />} />
         <Route path="/article/:articleId" element={<ArticleDetail />} />
-        <Route path="/quiz/:quizId" element={<QuizStart />} />
+        <Route path="/quizzes/:id" element={<QuizStart />} />
         <Route path="/game/:id" element={<WordGame />} />
-        <Route path="/find-difference" element={<FindDifference />} />        <Route path="/Contact" element={<Contact />} />
+        <Route path="/find-difference" element={<FindDifference />} />
+        <Route path="/Contact" element={<Contact />} />
         <Route path="/Login" element={<Login />} />
         <Route path="/Signup" element={<Signup />} />
+        <Route path="/games/memory" element={<MemoryGames />} />
+        <Route path="/games/puzzle" element={<PuzzleGame />} />
       </Routes>
-
       <Footer />
     </div>
   );

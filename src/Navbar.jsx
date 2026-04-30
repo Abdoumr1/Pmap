@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import logopfe from "./images/pmap.png"
 
 export default function Navbar() {
   const [language, setLanguage] = useState('English');

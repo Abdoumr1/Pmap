@@ -2,9 +2,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { Calendar, Clock, User, Eye, Bookmark, ChevronLeft, ChevronRight, ArrowLeft } from 'lucide-react';
-import articleImage1 from "./images/article1.webp";
-import articleImage2 from "./images/logopfe.png";
-import articleImage3 from "./images/logopfe.png";
 import { MdArticle } from "react-icons/md";
 import axios from "axios";
 

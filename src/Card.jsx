@@ -50,7 +50,7 @@ const Card = () => {
       id: 3,
       name: "Quiz",
       logo: <HelpCircle className="w-8 h-8 text-white" />,
-      path: "/quiz",
+      path: "/quizzes",
       color: "from-red-500 to-red-700"
     },
     {
